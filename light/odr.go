@@ -20,6 +20,7 @@ package light
 
 import (
 	"context"
+	"errors"
 	"math/big"
 
 	"github.com/gochain-io/gochain/common"
@@ -33,6 +34,9 @@ import (
 // service is not required.
 var NoOdr = context.Background()
 
+// ErrNoPeers is returned if no peers capable of serving a queued request are available
+var ErrNoPeers = errors.New("no suitable peers available")
+
 // OdrBackend is an interface to a backend service that handles ODR retrievals type
 type OdrBackend interface {
 	Database() common.Database
@@ -40,6 +44,7 @@ type OdrBackend interface {
 	BloomTrieIndexer() *core.ChainIndexer
 	BloomIndexer() *core.ChainIndexer
 	Retrieve(ctx context.Context, req OdrRequest) error
+	IndexerConfig() *IndexerConfig
 }
 
 // OdrRequest is an interface for retrieval requests
@@ -134,6 +139,7 @@ func (req *ReceiptsRequest) StoreResult(db common.Database) {
 // ChtRequest is the ODR request type for state/storage trie entries
 type ChtRequest struct {
 	OdrRequest
+	Config           *IndexerConfig
 	ChtNum, BlockNum uint64
 	ChtRoot          common.Hash
 	Header           *types.Header
@@ -153,12 +159,13 @@ func (req *ChtRequest) StoreResult(db common.Database) {
 // BloomRequest is the ODR request type for retrieving bloom filters from a CHT structure
 type BloomRequest struct {
 	OdrRequest
-	BloomTrieNum   uint64
-	BitIdx         uint
-	SectionIdxList []uint64
-	BloomTrieRoot  common.Hash
-	BloomBits      [][]byte
-	Proofs         *NodeSet
+	Config           *IndexerConfig
+	BloomTrieNum     uint64
+	BitIdx           uint
+	SectionIndexList []uint64
+	BloomTrieRoot    common.Hash
+	BloomBits        [][]byte
+	Proofs           *NodeSet
 }
 
 // StoreResult stores the retrieved data in local database

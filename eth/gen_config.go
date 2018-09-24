@@ -15,7 +15,6 @@ import (
 
 var _ = (*configMarshaling)(nil)
 
-// MarshalTOML marshals as TOML.
 func (c Config) MarshalTOML() (interface{}, error) {
 	type Config struct {
 		Genesis                 *core.Genesis `toml:",omitempty"`
@@ -36,6 +35,8 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		GPO                     gasprice.Config
 		EnablePreimageRecording bool
 		DocRoot                 string `toml:"-"`
+		EWASMInterpreter        string
+		EVMInterpreter          string
 	}
 	var enc Config
 	enc.Genesis = c.Genesis
@@ -56,11 +57,11 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.GPO = c.GPO
 	enc.EnablePreimageRecording = c.EnablePreimageRecording
 	enc.DocRoot = c.DocRoot
-	// enc.Archive = c.Archive
+	enc.EWASMInterpreter = c.EWASMInterpreter
+	enc.EVMInterpreter = c.EVMInterpreter
 	return &enc, nil
 }
 
-// UnmarshalTOML unmarshals from TOML.
 func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type Config struct {
 		Genesis                 *core.Genesis `toml:",omitempty"`
@@ -81,7 +82,8 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		GPO                     *gasprice.Config
 		EnablePreimageRecording *bool
 		DocRoot                 *string `toml:"-"`
-		// Archive                 *archive.Config `toml:",omitempty"`
+		EWASMInterpreter        *string
+		EVMInterpreter          *string
 	}
 	var dec Config
 	if err := unmarshal(&dec); err != nil {
@@ -141,8 +143,11 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.DocRoot != nil {
 		c.DocRoot = *dec.DocRoot
 	}
-	// if dec.Archive != nil {
-	// 	c.Archive = *dec.Archive
-	// }
+	if dec.EWASMInterpreter != nil {
+		c.EWASMInterpreter = *dec.EWASMInterpreter
+	}
+	if dec.EVMInterpreter != nil {
+		c.EVMInterpreter = *dec.EVMInterpreter
+	}
 	return nil
 }
